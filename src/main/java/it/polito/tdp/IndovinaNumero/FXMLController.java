@@ -5,7 +5,10 @@
 package it.polito.tdp.IndovinaNumero;
 
 import java.net.URL;
+import java.security.InvalidParameterException;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.IndovinaNumero.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -14,12 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 public class FXMLController {
-
-	private final int NMAX = 100;
-	private final int TMAX = 8;
-	private int segreto;
-	private int tentativiFatti;
-	private boolean inGioco = false;
+private Model model;
 	
 	
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -48,57 +46,65 @@ public class FXMLController {
 
     @FXML
     void doNuovaPartita(ActionEvent event) {
-    	//gestione inizio nuova partita
-    	this.segreto = (int) (Math.random() * NMAX) +1;
-    	this.tentativiFatti = 0;
-    	this.inGioco = true;
-    	
-    	//gestione dell'interfaccia
-    	this.txtTentativi.setText(Integer.toString(TMAX));
+    	//inizia la nuova partita
+    	this.model.nuovaPartita();
+ //gestione dell'interfaccia ma vanno cambiate le variabile che sono state messe
+    //richiamandola dal modello
+    	this.txtRisultato.clear();
+    	this.txtTentativi.setText(Integer.toString(this.model.getTMAX()));
     	this.layoutTentativo.setDisable(false);
     }
 
     @FXML
-    void doTentativo(ActionEvent event) {
-    	//lettura input dell'utente
-    	String ts = txtTentativoUtente.getText();
-    	
-    	int tentativo;
-    	try {
-    		tentativo = Integer.parseInt(ts);
-    	}catch(NumberFormatException e) {
-    		txtRisultato.setText("Devi inserire un numero!");
-    		return;
-    	}
+    	 void doTentativo(ActionEvent event) {
+    	    	//lettura input dell'utente
+    	    	String ts = txtTentativoUtente.getText();
+    	    	
+    	    	int tentativo;
+    	    	try {
+    	    		tentativo = Integer.parseInt(ts);
+    	    	}catch(NumberFormatException e) {
+    	    		txtRisultato.setText("Devi inserire un numero!");
+    	    		return;
+    	    	}
+    	    	this.txtTentativoUtente.setText("");
+    	    	
+    	    	
+    	    	int result;
+    	    	try {
+    	    		result = this.model.tentativo(tentativo);
+    	    	} catch(IllegalStateException se) {
+    	    		this.txtRisultato.setText(se.getMessage());
+    	        	this.txtTentativi.setText("0");
+    	    		this.layoutTentativo.setDisable(true);
+    	    		return ;
+    	    	} catch(InvalidParameterException pe) {
+    	    		this.txtRisultato.setText(pe.getMessage());
+    	    		return;
+    	    	} 
+    	    	
+    	    	this.txtTentativi.setText(Integer.toString(this.model.getTMAX()-this.model.getTentativiFatti()));
 
-    	this.txtTentativoUtente.setText("");
-    	
-    	this.tentativiFatti ++;
-    	this.txtTentativi.setText(Integer.toString(TMAX-this.tentativiFatti));
-    	
-    	if(tentativo == this.segreto) {
-    		//HO INDOVINATO!
-    		txtRisultato.setText("HAI VINTO CON " + this.tentativiFatti + "TENTATIVI");
-    		this.inGioco = false;
-    		this.layoutTentativo.setDisable(true);
-    		return;
-    	}
-    	
-    	if(this.tentativiFatti == TMAX) {
-    		//ho esaurito i tentativi
-    		txtRisultato.setText("HAI PERSO. IL SEGRETO ERA: " + this.segreto);
-    		this.inGioco = false;
-    		this.layoutTentativo.setDisable(true);
-    		return;
-    	}
-    	
-    	//Non ho vinto -> devo informare l'utente circa la bontà del suo tentativo
-    	if(tentativo < this.segreto) {
-    		txtRisultato.setText("TENTATIVO TROPPO BASSO");
-    	} else {
-    		txtRisultato.setText("TENTATIVO TROPPO ALTO");
-    	}
-    	
+    	    	
+    	    	if(result == 0) {
+    	    		//HO INDOVINATO!
+    	    		txtRisultato.setText("HAI VINTO CON " + this.model.getTentativiFatti() + "TENTATIVI");
+    	    		this.layoutTentativo.setDisable(true);
+    	    		return;
+    	    	} else if(result < 0) {
+    	    		txtRisultato.setText("TENTATIVO TROPPO BASSO");
+    	    	} else {
+    	    		txtRisultato.setText("TENTATIVO TROPPO ALTO");
+    	    	}
+    	    	
+    	    	
+    	    	
+    	    }
+
+    
+    
+    public void setModel(Model model) {
+    	this.model= model;
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

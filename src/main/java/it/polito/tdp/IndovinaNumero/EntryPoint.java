@@ -2,6 +2,8 @@ package it.polito.tdp.IndovinaNumero;
 
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+
+import it.polito.tdp.IndovinaNumero.model.Model;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,11 +14,17 @@ public class EntryPoint extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/Scene.fxml"));
+    	// qui è il posto per creare un nuovo modello
+    	Model model= new Model();
+    	FXMLController controller;
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene.fxml"));
+        Parent root = loader.load();
         
         Scene scene = new Scene(root);
         scene.getStylesheets().add("/styles/Styles.css");
-        
+        // riferimento al controller
+        controller= loader.getController();
+        controller.setModel(model);
         stage.setTitle("JavaFX and Maven");
         stage.setScene(scene);
         stage.show();
